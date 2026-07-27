@@ -89,9 +89,9 @@ def predict(model_name, artifacts, input_df):
 def main():
     st.title("🩺 Breast Cancer Diagnosis Prediction")
     st.markdown(
-        "Cette application prédit si une masse mammaire est **maligne (M)** ou "
-        "**bénigne (B)** à partir des caractéristiques cellulaires calculées sur "
-        "une image FNA (Fine Needle Aspirate)."
+        "This application predicts whether a breast mass is **malignant (M)** or "
+        "**benign (B)** based on cellular characteristics calculated from "
+        "an image FNA (Fine Needle Aspirate)."
     )
 
     artifacts = load_artifacts()
@@ -100,25 +100,25 @@ def main():
         for err in artifacts["errors"]:
             st.error(err)
         st.info(
-            "Assure-toi que les fichiers suivants existent dans le dossier `models/` : "
+            "Make sure that the following files exist in the folder `models/`: "
             "`svc_breast_cancer_model.joblib`, `xgboost_best_model.joblib`, `scaler.joblib`."
         )
 
     st.sidebar.header("⚙️ Configuration")
     model_choice = st.sidebar.selectbox(
-        "Choisir le modèle de prédiction",
+        "Choose the prediction model",
         ["SVC (Support Vector Machine)", "XGBoost"]
     )
 
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         "**SVC** : Accuracy 0.974, Precision 1.00, Recall 0.929\n\n"
-        "**XGBoost** : modèle ensemble sur features brutes (non standardisées)"
+        "**XGBoost** : Model trained on raw (unstandardized) features"
     )
 
     st.markdown("---")
-    st.subheader("📋 Caractéristiques de la masse mammaire")
-    st.caption("Ajuste les valeurs ci-dessous ou laisse les valeurs par défaut (moyennes du dataset).")
+    st.subheader("📋 Characteristics of breast tissue")
+    st.caption("Adjust the values below or leave them at their default values (averages from the dataset).")
 
     input_values = {}
 
@@ -160,33 +160,33 @@ def main():
         label, proba = predict(model_choice, artifacts, input_df)
 
         if label is None:
-            st.error("Impossible de faire la prédiction : modèle ou scaler manquant.")
+            st.error("Unable to make a prediction: missing model or scaler.")
         else:
             col1, col2 = st.columns(2)
 
             with col1:
                 if "Malignant" in label:
-                    st.error(f"### Résultat : {label}")
+                    st.error(f"### Result : {label}")
                 else:
-                    st.success(f"### Résultat : {label}")
+                    st.success(f"### Result : {label}")
 
             with col2:
                 st.metric(
-                    label="Probabilité de malignité",
+                    label="Probability of malignancy",
                     value=f"{proba * 100:.2f}%"
                 )
 
             st.progress(min(max(proba, 0.0), 1.0))
 
             st.caption(
-                f"Modèle utilisé : **{model_choice}**. "
-                "Cette prédiction est fournie à titre indicatif et ne remplace pas un avis médical."
+                f"Used model : **{model_choice}**. "
+                "This prediction is provided for informational purposes only and is not a substitute for medical advice."
             )
 
     st.markdown("---")
     st.caption(
         "Dataset : Breast Cancer Wisconsin (Diagnostic). "
-        "Modèles entraînés dans le cadre du capstone IIP Program."
+        "Models trained as part of the capstone IIP Program."
     )
 
 
