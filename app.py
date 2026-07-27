@@ -64,6 +64,20 @@ def load_artifacts():
 
     return artifacts
 
+def get_expected_features(model):
+    """Récupère la liste des features attendues par un modèle sauvegardé, si disponible."""
+    if hasattr(model, "feature_names_in_"):
+        return list(model.feature_names_in_)
+    booster_feature_names = getattr(model, "get_booster", None)
+    if booster_feature_names is not None:
+        try:
+            names = model.get_booster().feature_names
+            if names:
+                return list(names)
+        except Exception:
+            pass
+    return None
+
 
 def predict(model_name, artifacts, input_df):
     """Retourne (label, proba_malignant) pour le modèle choisi."""
@@ -79,6 +93,19 @@ def predict(model_name, artifacts, input_df):
         model = artifacts["xgb"]
         if model is None:
             return None, None
+
+        expected_features = get_expected_features(model)
+
+        if expected_features:
+            missing = set(expected_features) - set(input_df.columns)
+            if missing:
+                raise ValueError(
+                    f"The XGBoost model expects columns that are missing from the form : {missing}"
+                )
+            model_input = input_df[expected_features]
+        else:
+            model_input = input_df
+            
         pred = model.predict(input_df)[0]
         proba = model.predict_proba(input_df)[0][1]
 
