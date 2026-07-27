@@ -203,7 +203,7 @@ def main():
                     value=f"{proba * 100:.2f}%"
                 )
 
-            st.progress(min(max(proba, 0.0), 1.0))
+            st.progress(float(min(max(proba, 0.0), 1.0)))
 
             st.caption(
                 f"Used model : **{model_choice}**. "
