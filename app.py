@@ -44,8 +44,13 @@ def load_artifacts():
     svc_path = os.path.join(MODELS_DIR, "svc_breast_cancer_model.joblib")
     xgb_path = os.path.join(MODELS_DIR, "xgboost_best_model.joblib")
     scaler_path = os.path.join(MODELS_DIR, "scaler.joblib")
+    xgb_scaler_path = os.path.join(MODELS_DIR, "xgb_scaler.joblib")
+    xgb_features_path = os.path.join(MODELS_DIR, "xgb_selected_features.joblib")
 
-    artifacts = {"svc": None, "xgb": None, "scaler": None, "errors": []}
+    artifacts = {
+        "svc": None, "xgb": None, "scaler": None,
+        "xgb_scaler": None, "xgb_features": None, "errors": []
+    }
 
     if os.path.exists(svc_path):
         artifacts["svc"] = joblib.load(svc_path)
@@ -62,22 +67,17 @@ def load_artifacts():
     else:
         artifacts["errors"].append(f"Fichier manquant : {scaler_path} (nécessaire pour le SVC)")
 
+    if os.path.exists(xgb_scaler_path):
+        artifacts["xgb_scaler"] = joblib.load(xgb_scaler_path)
+    else:
+        artifacts["errors"].append(f"Fichier manquant : {xgb_scaler_path} (nécessaire pour XGBoost)")
+
+    if os.path.exists(xgb_features_path):
+        artifacts["xgb_features"] = joblib.load(xgb_features_path)
+    else:
+        artifacts["errors"].append(f"Fichier manquant : {xgb_features_path}")
+
     return artifacts
-
-def get_expected_features(model):
-    """Récupère la liste des features attendues par un modèle sauvegardé, si disponible."""
-    if hasattr(model, "feature_names_in_"):
-        return list(model.feature_names_in_)
-    booster_feature_names = getattr(model, "get_booster", None)
-    if booster_feature_names is not None:
-        try:
-            names = model.get_booster().feature_names
-            if names:
-                return list(names)
-        except Exception:
-            pass
-    return None
-
 
 def predict(model_name, artifacts, input_df):
     """Retourne (label, proba_malignant) pour le modèle choisi."""
@@ -91,23 +91,23 @@ def predict(model_name, artifacts, input_df):
         proba = model.predict_proba(X_scaled)[0][1]
     else:
         model = artifacts["xgb"]
-        if model is None:
+        xgb_scaler = artifacts["xgb_scaler"]
+        xgb_features = artifacts["xgb_features"]
+
+        if model is None or xgb_scaler is None or xgb_features is None:
             return None, None
 
-        expected_features = get_expected_features(model)
+        missing = set(xgb_features) - set(input_df.columns)
+        if missing:
+            raise ValueError(
+                f"The XGBoost model expects columns that are missing from the form : {missing}"
+            )
 
-        if expected_features:
-            missing = set(expected_features) - set(input_df.columns)
-            if missing:
-                raise ValueError(
-                    f"The XGBoost model expects columns that are missing from the form : {missing}"
-                )
-            model_input = input_df[expected_features]
-        else:
-            model_input = input_df
-            
-        pred = model.predict(model_input)[0]
-        proba = model.predict_proba(model_input)[0][1]
+        model_input = input_df[xgb_features]
+        model_input_scaled = xgb_scaler.transform(model_input)
+
+        pred = model.predict(model_input_scaled)[0]
+        proba = model.predict_proba(model_input_scaled)[0][1]
 
     label = "Malignant (M)" if pred == 1 else "Benign (B)"
     return label, proba
@@ -140,7 +140,7 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         "**SVC** : Accuracy 0.974, Precision 1.00, Recall 0.929\n\n"
-        "**XGBoost** : Model trained on raw (unstandardized) features"
+        "**XGBoost** : Accuracy 0.974, Precision 1.00, Recall 0.929, F1-score 0.963, ROC-AUC 0.996"
     )
 
     st.markdown("---")
