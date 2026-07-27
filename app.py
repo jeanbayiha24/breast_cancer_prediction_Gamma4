@@ -106,8 +106,8 @@ def predict(model_name, artifacts, input_df):
         else:
             model_input = input_df
             
-        pred = model.predict(input_df)[0]
-        proba = model.predict_proba(input_df)[0][1]
+        pred = model.predict(model_input)[0]
+        proba = model.predict_proba(model_input)[0][1]
 
     label = "Malignant (M)" if pred == 1 else "Benign (B)"
     return label, proba
