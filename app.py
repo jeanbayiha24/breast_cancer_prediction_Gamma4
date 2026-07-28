@@ -233,7 +233,28 @@ def main():
         col2.metric("Benign", f"{benign_pct:.1f}%")
         col3.metric("Malignant", f"{malignant_pct:.1f}%")
 
-        dash1, dash2
+        dash1, dash2, dash3 = st.tabs(["Overview", "EDA", "Feature insights"])
+
+        with dash1:
+            a, b = st.columns([1, 1])
+            with a:
+                st.pyplot(plot_class_distribution(df), use_container_width=True)
+            with b:
+                st.pyplot(plot_mean_comparison(df), use_container_width=True)
+
+        with dash2:
+            st.pyplot(plot_correlation_heatmap(df), use_container_width=True)
+            st.pyplot(plot_boxplot(df), use_container_width=True)
+
+        with dash3:
+            st.markdown("### Key observations")
+            st.markdown("- Radius, perimeter and area are strongly correlated.")
+            st.markdown("- Malignant cases tend to show larger radius, perimeter and area values.")
+            #st.markdown("- Automatic plots are generated inside the app from `sklearn.datasets.load_breast_cancer()`.")
+            st.dataframe(df.head(10), use_container_width=True)
+
+    st.markdown("---")
+    st.caption("Dataset: Breast Cancer Wisconsin (Diagnostic) loaded directly from scikit-learn.")
 
 if __name__ == "__main__":
     main()
