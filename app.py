@@ -233,7 +233,7 @@ def main():
         col2.metric("Benign", f"{benign_pct:.1f}%")
         col3.metric("Malignant", f"{malignant_pct:.1f}%")
 
-        dash1#, dash2
+        dash1, dash2
 
 if __name__ == "__main__":
     main()
