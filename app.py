@@ -140,7 +140,7 @@ def plot_correlation_heatmap(df):
     selected = ["radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean", "compactness_mean", "concavity_mean", "concave points_mean"]
     corr = df[selected].corr()
     fig, ax = plt.subplots(figsize=(7, 5))
-    sns.heatmap(corr, cmap="magma", annot=True, fmt=".2f", linewidths=.5, ax=ax)
+    sns.heatmap(corr, cmap="coolwarm", annot=True, fmt=".2f", linewidths=.5, ax=ax)
     ax.set_title("Correlation heatmap", fontsize=13, fontweight='bold')
     fig.tight_layout()
     return fig
