@@ -136,25 +136,63 @@ def plot_class_distribution(df):
     return fig
 
 
-def plot_correlation_heatmap(df):
-    selected = ["radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean", "compactness_mean", "concavity_mean", "concave points_mean"]
-    corr = df[selected].corr()
-    fig, ax = plt.subplots(figsize=(7, 5))
-    sns.heatmap(corr, cmap="coolwarm", annot=True, fmt=".2f", linewidths=.5, ax=ax)
-    ax.set_title("Correlation heatmap", fontsize=13, fontweight='bold')
+def plot_correlation_heatmap(df, full_matrix=False):
+    cols = FEATURES + ["target"] if full_matrix else [
+        "radius_mean", "texture_mean", "perimeter_mean", "area_mean",
+        "compactness_mean", "concavity_mean", "concave points_mean", "radius_worst", "area_worst", "target"
+    ]
+    corr = df[cols].corr()
+    fig, ax = plt.subplots(figsize=(14, 10) if full_matrix else (9, 6))
+    sns.heatmap(
+        corr,
+        cmap="coolwarm",
+        center=0,
+        vmin=-1,
+        vmax=1,
+        annot=not full_matrix,
+        fmt=".2f",
+        linewidths=0.5,
+        cbar_kws={"shrink": 0.9},
+        ax=ax
+    )
+    ax.set_title("Correlation Heatmap (numerical features)", fontsize=14, fontweight='bold')
+    ax.tick_params(axis='x', rotation=90)
+    ax.tick_params(axis='y', rotation=0)
     fig.tight_layout()
     return fig
 
 
-def plot_boxplot(df):
-    selected = ["radius_mean", "texture_mean", "area_mean"]
-    long_df = df.melt(id_vars="diagnosis", value_vars=selected, var_name="feature", value_name="value")
-    fig, ax = plt.subplots(figsize=(7, 4.5))
-    sns.boxplot(data=long_df, x="feature", y="value", hue="diagnosis", palette=["#ef6c57", "#66bb8a"], ax=ax)
-    ax.set_title("Feature distributions by diagnosis", fontsize=13, fontweight='bold')
+def plot_feature_distribution(df, scaled=False):
+    selected = ["radius_mean", "texture_mean", "perimeter_mean", "area_mean", "concavity_mean", "concave points_mean"]
+    plot_df = df[[*selected, "diagnosis"]].copy()
+    title = "Feature distributions by diagnosis"
+    ylabel = "Value"
+    if scaled:
+        from sklearn.preprocessing import MinMaxScaler
+        scaler = MinMaxScaler()
+        plot_df[selected] = scaler.fit_transform(plot_df[selected])
+        title = "Feature distributions by diagnosis (scaled 0-1)"
+        ylabel = "Scaled value"
+    long_df = plot_df.melt(id_vars="diagnosis", value_vars=selected, var_name="feature", value_name="value")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.boxplot(
+        data=long_df,
+        x="feature",
+        y="value",
+        hue="diagnosis",
+        palette={"Malignant": "#d97767", "Benign": "#6fb08f"},
+        width=0.68,
+        fliersize=3,
+        linewidth=1.2,
+        ax=ax
+    )
+    ax.set_title(title, fontsize=22, fontweight='bold', pad=16)
     ax.set_xlabel("")
-    ax.set_ylabel("Value")
-    ax.tick_params(axis='x', rotation=15)
+    ax.set_ylabel(ylabel, fontsize=15)
+    ax.tick_params(axis='x', rotation=20, labelsize=11)
+    ax.tick_params(axis='y', labelsize=11)
+    ax.legend(title="diagnosis", fontsize=11, title_fontsize=12, frameon=True)
+    sns.despine(ax=ax)
     fig.tight_layout()
     return fig
 
@@ -243,14 +281,16 @@ def main():
                 st.pyplot(plot_mean_comparison(df), use_container_width=True)
 
         with dash2:
-            st.pyplot(plot_correlation_heatmap(df), use_container_width=True)
-            st.pyplot(plot_boxplot(df), use_container_width=True)
+            full_matrix = st.toggle("Show full correlation matrix", value=False)
+            st.pyplot(plot_correlation_heatmap(df, full_matrix=full_matrix), use_container_width=True)
+            scaled_view = st.toggle("Use scaled feature distribution", value=False)
+            st.pyplot(plot_feature_distribution(df, scaled=scaled_view), use_container_width=True)
 
         with dash3:
             st.markdown("### Key observations")
             st.markdown("- Radius, perimeter and area are strongly correlated.")
             st.markdown("- Malignant cases tend to show larger radius, perimeter and area values.")
-            #st.markdown("- Automatic plots are generated inside the app from `sklearn.datasets.load_breast_cancer()`.")
+            st.markdown("- Automatic plots are generated inside the app from `sklearn.datasets.load_breast_cancer()`.")
             st.dataframe(df.head(10), use_container_width=True)
 
     st.markdown("---")
