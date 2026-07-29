@@ -298,7 +298,7 @@ def main():
             if label is None:
                 st.error("Unable to make a prediction: missing model or scaler.")
             else:
-                proba_malignant = 1 - proba_benign
+                
                 c1, c2 = st.columns(2)
                 with c1:
                     if "Malignant" in label:
