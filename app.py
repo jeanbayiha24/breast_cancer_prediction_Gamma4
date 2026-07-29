@@ -199,7 +199,7 @@ def plot_feature_distribution(df, scaled=False):
 
 def plot_mean_comparison(df):
     compare = df.groupby("diagnosis")[["radius_mean", "texture_mean", "perimeter_mean", "area_mean"]].mean().T
-    fig, ax = plt.subplots(figsize=(7, 5))
+    fig, ax = plt.subplots(figsize=(7, 5.5))
     compare.plot(kind="bar", ax=ax, color=["#ef6c57", "#66bb8a"])
     ax.set_title("Mean feature comparison", fontsize=13, fontweight='bold')
     ax.set_ylabel("Average value")
