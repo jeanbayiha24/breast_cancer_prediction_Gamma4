@@ -208,6 +208,37 @@ def plot_mean_comparison(df):
     fig.tight_layout()
     return fig
 
+def plot_xgb_feature_importance(artifacts, top_n=15):
+    """Retourne une figure Matplotlib montrant l'importance des variables XGBoost."""
+    model = artifacts.get("xgb")
+    xgb_features = artifacts.get("xgb_features")
+
+    # Vérifications
+    if model is None or xgb_features is None:
+        return None
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Importance des features (API scikit-learn de XGBoost)
+    try:
+        importances = model.feature_importances_
+    except AttributeError:
+        return None
+
+    feature_names = list(xgb_features)
+    idx = np.argsort(importances)[::-1][:top_n]
+    sorted_features = [feature_names[i] for i in idx]
+    sorted_importances = importances[idx]
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.barh(sorted_features[::-1], sorted_importances[::-1], color="#d97767")
+    ax.set_title("XGBoost Feature Importance", fontsize=16, fontweight="bold")
+    ax.set_xlabel("Importance", fontsize=12)
+    ax.set_ylabel("Feature", fontsize=12)
+    fig.tight_layout()
+    return fig
+
 
 def main():
     st.title("🩺 Breast Cancer Diagnosis Prediction")
@@ -223,7 +254,7 @@ def main():
 
     st.sidebar.header("⚙️ Configuration")
     model_choice = st.sidebar.selectbox("Choose the prediction model", ["SVC (Support Vector Machine)", "XGBoost"])
-    page = st.sidebar.radio("Navigation", ["Prediction", "Dashboard"])
+    page = st.sidebar.radio("Navigation", ["Prediction", "Dashboard", "Interpretability"])
     st.sidebar.markdown("---")
     st.sidebar.markdown("**SVC** : Accuracy 0.974, Precision 1.00, Recall 0.929\n\n**XGBoost** : Accuracy 0.974, Precision 1.00, Recall 0.929, F1-score 0.963, ROC-AUC 0.996")
 
@@ -271,7 +302,7 @@ def main():
         col2.metric("Benign", f"{benign_pct:.1f}%")
         col3.metric("Malignant", f"{malignant_pct:.1f}%")
 
-        dash1, dash2, dash3 = st.tabs(["Overview", "EDA", "Feature insights"])
+        dash1, dash2, dash3, dash4 = st.tabs(["Overview", "EDA", "Feature insights", "Interpretability"])
 
         with dash1:
             a, b = st.columns([1, 1])
@@ -292,6 +323,49 @@ def main():
             st.markdown("- Malignant cases tend to show larger radius, perimeter and area values.")
             st.markdown("- Automatic plots are generated inside the app from `sklearn.datasets.load_breast_cancer()`.")
             st.dataframe(df.head(10), use_container_width=True)
+
+        with dash4:
+            st.markdown("### Model interpretability")
+            st.markdown(
+                "This section shows feature importance for **XGBoost** "
+                "and an imported visualization for **SVC**."
+            )
+        
+            col_xgb, col_svc = st.columns(2)
+        
+            # XGBoost
+            with col_xgb:
+                st.markdown("#### XGBoost feature importance")
+                fig_imp = plot_xgb_feature_importance(artifacts, top_n=15)
+                if fig_imp is not None:
+                    st.pyplot(fig_imp, use_container_width=True)
+                else:
+                    st.info(
+                        "XGBoost model or its feature list is missing, "
+                        "so importance cannot be computed."
+                    )
+        
+            # SVC (image uploadée depuis le notebook)
+            with col_svc:
+                st.markdown("#### SVC feature importance (notebook)")
+                st.markdown(
+                    "The SVC importance plot is generated in the training notebook "
+                    "using permutation importance and uploaded here."
+                )
+        
+                svc_image_path = "svc_feature_importance.png"
+                if os.path.exists(svc_image_path):
+                    st.image(
+                        svc_image_path,
+                        caption="SVC Permutation Feature Importance",
+                        use_column_width=True,
+                    )
+                else:
+                    st.info(
+                        "Upload `svc_feature_importance.png` into the `models/` folder "
+                        "to display the SVC importance plot."
+                    )
+
 
     st.markdown("---")
     st.caption("Dataset: Breast Cancer Wisconsin (Diagnostic) loaded directly from scikit-learn.")
