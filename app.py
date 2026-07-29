@@ -348,10 +348,10 @@ def main():
             # SVC (image uploadée depuis le notebook)
             with col_svc:
                 st.markdown("#### SVC feature importance (notebook)")
-                st.markdown(
-                    "The SVC importance plot is generated in the training notebook "
-                    "using permutation importance and uploaded here."
-                )
+                #st.markdown(
+                #    "The SVC importance plot is generated in the training notebook "
+                #    "using permutation importance and uploaded here."
+                #)
         
                 svc_image_path = "svc_feature_importance.png"
                 if os.path.exists(svc_image_path):
