@@ -294,7 +294,7 @@ def main():
 
         if st.button("🔍 Predict Diagnosis", type="primary", use_container_width=True):
             input_df = pd.DataFrame([input_values])[FEATURES]
-            label, proba_benign = predict(model_choice, artifacts, input_df)
+            label, proba_malignant = predict(model_choice, artifacts, input_df)
             if label is None:
                 st.error("Unable to make a prediction: missing model or scaler.")
             else:
