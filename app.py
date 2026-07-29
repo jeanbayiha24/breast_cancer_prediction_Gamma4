@@ -109,7 +109,9 @@ def predict(model_name, artifacts, input_df):
             return None, None
         X_scaled = scaler.transform(input_df)
         pred = model.predict(X_scaled)[0]
-        proba = model.predict_proba(X_scaled)[0][1]
+        classes = list(model.classes_)
+        malignant_idx = classes.index(1)
+        proba = model.predict_proba(X_scaled)[0][malignant_idx]
     else:
         model = artifacts["xgb"]
         xgb_scaler = artifacts["xgb_scaler"]
@@ -119,8 +121,13 @@ def predict(model_name, artifacts, input_df):
         model_input = input_df[xgb_features]
         model_input_scaled = xgb_scaler.transform(model_input)
         pred = model.predict(model_input_scaled)[0]
-        proba = model.predict_proba(model_input_scaled)[0][1]
+        classes = list(model.classes_)
+        malignant_idx = classes.index(1)
+        proba = model.predict_proba(model_input_scaled)[0][malignant_idx]
     label = "Malignant (M)" if pred == 1 else "Benign (B)"
+
+    st.write("SVC classes:", artifacts["svc"].classes_)
+    st.write("XGB classes:", artifacts["xgb"].classes_)
     return label, proba
 
 
