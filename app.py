@@ -112,6 +112,7 @@ def predict(model_name, artifacts, input_df):
         classes = list(model.classes_)
         malignant_idx = classes.index(1)
         proba = model.predict_proba(X_scaled)[0][malignant_idx]
+        proba_all = model.predict_proba(X_scaled)[0]
     else:
         model = artifacts["xgb"]
         xgb_scaler = artifacts["xgb_scaler"]
@@ -124,9 +125,9 @@ def predict(model_name, artifacts, input_df):
         classes = list(model.classes_)
         malignant_idx = classes.index(1)
         proba = model.predict_proba(model_input_scaled)[0][malignant_idx]
+        proba_all = model.predict_proba(model_input_scaled)[0]
 
-
-    proba_all = model.predict_proba(model_input_scaled)[0]
+    
     classes = list(model.classes_)
     malignant_idx = classes.index(1)
     proba = proba_all[malignant_idx]
