@@ -254,7 +254,7 @@ def main():
 
     st.sidebar.header("⚙️ Configuration")
     model_choice = st.sidebar.selectbox("Choose the prediction model", ["SVC (Support Vector Machine)", "XGBoost"])
-    page = st.sidebar.radio("Navigation", ["Prediction", "Dashboard", "Interpretability"])
+    page = st.sidebar.radio("Navigation", ["Prediction", "Dashboard"])
     st.sidebar.markdown("---")
     st.sidebar.markdown("**SVC** : Accuracy 0.974, Precision 1.00, Recall 0.929\n\n**XGBoost** : Accuracy 0.974, Precision 1.00, Recall 0.929, F1-score 0.963, ROC-AUC 0.996")
 
