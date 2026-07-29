@@ -124,10 +124,20 @@ def predict(model_name, artifacts, input_df):
         classes = list(model.classes_)
         malignant_idx = classes.index(1)
         proba = model.predict_proba(model_input_scaled)[0][malignant_idx]
-    label = "Malignant (M)" if pred == 1 else "Benign (B)"
 
-    st.write("SVC classes:", artifacts["svc"].classes_)
-    st.write("XGB classes:", artifacts["xgb"].classes_)
+
+    proba_all = model.predict_proba(model_input_scaled)[0]
+    classes = list(model.classes_)
+    malignant_idx = classes.index(1)
+    proba = proba_all[malignant_idx]
+    
+    st.write("Pred raw:", pred)
+    st.write("Proba all:", proba_all)
+    st.write("Malignant proba:", proba)
+    st.write("Classes:", classes)
+    
+    label = "Malignant (M)" if pred == 1 else "Benign (B)"
+    
     return label, proba
 
 
